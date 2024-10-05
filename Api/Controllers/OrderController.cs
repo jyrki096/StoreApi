@@ -3,6 +3,8 @@ using Api.ModelsDto;
 using Api.Service;
 using Api.Storage;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace Api.Controllers
 {
@@ -15,17 +17,18 @@ namespace Api.Controllers
                 return BadRequest(new ResponseServer
                 {
                     isSuccess = false,
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    StatusCode = HttpStatusCode.BadRequest,
                     ErrorMessages = { "Неверная модель заказа" }
                 });
 
-            
+
             try
             {
                 await orderService.CreateOrderAsync(order);
                 order.OrderDetails = null;
 
-                return Ok(new ResponseServer{
+                return Ok(new ResponseServer
+                {
                     Result = order
                 });
             }
@@ -34,8 +37,83 @@ namespace Api.Controllers
                 return BadRequest(new ResponseServer
                 {
                     isSuccess = false,
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    ErrorMessages = { "Что-то пошло не так", ex.Message}
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessages = { "Что-то пошло не так", ex.Message }
+                });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ResponseServer>> GetOrderById(int id)
+        { 
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new ResponseServer
+                    {
+                        isSuccess = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        ErrorMessages = { "Некорректный id" }
+                    });
+
+                var order = await orderService.GetOrderByIdAsync(id);
+
+                if (order is null)
+                    return NotFound(new ResponseServer
+                    {
+                        isSuccess = false,
+                        StatusCode = HttpStatusCode.NotFound,
+                        ErrorMessages = { "Заказ с таким id не найден" }
+                    });
+
+
+                return Ok(new ResponseServer
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Result = order
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ResponseServer
+                {
+                    isSuccess = false,
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ErrorMessages = { "Что-то пошло не так", ex.Message }
+                });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ResponseServer>> GetOrderByUserId(string id)
+        {
+            try
+            {
+                var isUserExist = await database.Users.FirstOrDefaultAsync(u => u.Id == id);
+
+                if (string.IsNullOrEmpty(id) || isUserExist is null)
+                    return BadRequest(new ResponseServer
+                    {
+                        isSuccess = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        ErrorMessages = { "Некорректный id или пользователя с таким id не существует" }
+                    });
+
+                var orders = await orderService.GetOrderByUserIdAsync(id);
+
+                return Ok(new ResponseServer
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Result = orders
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ResponseServer
+                {
+                    isSuccess = false,
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    ErrorMessages = { "При обработке запроса возникла ошибка", ex.Message }
                 });
             }
         }
