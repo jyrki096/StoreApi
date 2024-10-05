@@ -11,7 +11,7 @@ namespace Api.ModelsDto
         public string CustomerEmail { get; set; }
         public string UserId { get; set;}
         public decimal TotalPrice { get; set; }
-        public string Status { get; set; } 
+        public OrderStatus Status { get; set; } 
         public int TotalCount { get; set; }
         public IEnumerable<OrderDetailsCreateDto> OrderDetails { get; set; }
     }

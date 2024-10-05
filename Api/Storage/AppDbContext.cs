@@ -2,7 +2,6 @@ using Api.Models;
 using Api.Seed;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 
 namespace Api.Storage
@@ -25,11 +24,7 @@ namespace Api.Storage
         {
             base.OnModelCreating(builder);
             builder.Entity<Product>().HasData(FakeProductGenerator.GenerateProductList());
+            builder.HasPostgresEnum<OrderStatus>();
         }
-
-        
-        /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder
-        .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));*/
     }
 }

@@ -16,9 +16,9 @@ namespace Api.Service
                 OrderDateTime  = DateTime.UtcNow,
                 TotalPrice = orderHeaderCreateDto.TotalPrice,
                 TotalCount = orderHeaderCreateDto.TotalCount,
-                Status = string.IsNullOrEmpty(orderHeaderCreateDto.Status) ? 
-                                                          orderHeaderCreateDto.Status : 
-                                                          "Nulllll"
+                Status = string.IsNullOrEmpty(orderHeaderCreateDto.Status.ToString()) ? 
+                                                          OrderStatus.Created : 
+                                                          orderHeaderCreateDto.Status
             };
 
             await dbContext.OrderHeaders.AddAsync(order);

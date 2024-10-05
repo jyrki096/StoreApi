@@ -14,7 +14,7 @@ namespace Api.Models
         [ForeignKey("AppUserId")]
         public AppUser User { get; set; }
         public DateTime OrderDateTime { get; set; }
-        public string Status { get; set; }
+        public OrderStatus Status { get; set; }
         public IEnumerable<OrderDetails> OrderDetailsItems{ get; set; }
         public decimal TotalPrice { get; set; }
         public int TotalCount { get; set; }

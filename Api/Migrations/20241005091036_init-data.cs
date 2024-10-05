@@ -1,4 +1,5 @@
 ﻿using System;
+using Api.Models;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -9,11 +10,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Migrations
 {
     /// <inheritdoc />
-    public partial class dbi : Migration
+    public partial class initdata : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:Enum:order_status", "created,processed,delivering,delivered,cancelled");
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -236,7 +240,7 @@ namespace Api.Migrations
                     CustomerEmail = table.Column<string>(type: "text", nullable: true),
                     AppUserId = table.Column<string>(type: "text", nullable: true),
                     OrderDateTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: true),
+                    Status = table.Column<OrderStatus>(type: "order_status", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "numeric", nullable: false),
                     TotalCount = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -284,16 +288,16 @@ namespace Api.Migrations
                 columns: new[] { "Id", "Category", "Description", "Image", "Name", "Price", "SpecialTag" },
                 values: new object[,]
                 {
-                    { 1, "Категория 1", "Организации повышение консультация следует систему порядка интересный ресурсосберегающих воздействия.", "https://placehold.co/200", "Лоснящийся Бетонный Портмоне", 8821.42m, "Новинка" },
-                    { 2, "Категория 2", "Кругу экономической качественно прогрессивного следует проверки.", "https://placehold.co/200", "Великолепный Деревянный Компьютер", 7563.86m, "Рекомендуемый" },
-                    { 3, "Категория 1", "Особенности систему прежде общества значительной.", "https://placehold.co/200", "Свободный Бетонный Сабо", 5573.91m, "Рекомендуемый" },
-                    { 4, "Категория 2", "Соответствующих проблем курс материально-технической изменений напрямую различных.", "https://placehold.co/200", "Интеллектуальный Неодимовый Куртка", 4582.97m, "Рекомендуемый" },
-                    { 5, "Категория 3", "Кадровой что занимаемых последовательного организационной.", "https://placehold.co/200", "Фантастический Гранитный Сабо", 3482.51m, "Рекомендуемый" },
-                    { 6, "Категория 2", "Обеспечение потребностям идейные оценить позволяет качества обучения обучения определения прежде.", "https://placehold.co/200", "Лоснящийся Резиновый Майка", 5443.16m, "Новинка" },
-                    { 7, "Категория 2", "Новых вызывает практика.", "https://placehold.co/200", "Невероятный Меховой Кошелек", 112.06m, "Рекомендуемый" },
-                    { 8, "Категория 1", "Специалистов модель материально-технической высокотехнологичная показывает прежде значимость создаёт.", "https://placehold.co/200", "Практичный Неодимовый Клатч", 6330.51m, "Новинка" },
-                    { 9, "Категория 1", "Место существующий задач формировании путь занимаемых в.", "https://placehold.co/200", "Свободный Неодимовый Автомобиль", 1514.18m, "Рекомендуемый" },
-                    { 10, "Категория 3", "Напрямую формирования задач.", "https://placehold.co/200", "Эргономичный Бетонный Компьютер", 7515.95m, "Новинка" }
+                    { 1, "Категория 3", "Для управление ресурсосберегающих сознания высокотехнологичная экономической социально-экономическое модель постоянное.", "https://placehold.co/200", "Лоснящийся Натуральный Берет", 9018.69m, "Рекомендуемый" },
+                    { 2, "Категория 2", "Консультация путь массового нас социально-ориентированный другой.", "https://placehold.co/200", "Фантастический Резиновый Куртка", 7347.66m, "Новинка" },
+                    { 3, "Категория 3", "Профессионального создаёт консультация.", "https://placehold.co/200", "Большой Деревянный Стол", 6349.97m, "Рекомендуемый" },
+                    { 4, "Категория 1", "Повышение административных инновационный уровня сомнений занимаемых активом значение.", "https://placehold.co/200", "Эргономичный Пластиковый Носки", 2245.93m, "Новинка" },
+                    { 5, "Категория 2", "Проект вызывает новая постоянный национальный всего управление.", "https://placehold.co/200", "Свободный Бетонный Сабо", 2585.76m, "Рекомендуемый" },
+                    { 6, "Категория 3", "Условий для напрямую предпосылки позиции.", "https://placehold.co/200", "Великолепный Натуральный Портмоне", 1493.42m, "Новинка" },
+                    { 7, "Категория 1", "Значимость модель начало соответствующих повышение оценить начало новых принципов.", "https://placehold.co/200", "Эргономичный Меховой Компьютер", 8553.67m, "Новинка" },
+                    { 8, "Категория 1", "Активности проблем структуры.", "https://placehold.co/200", "Фантастический Пластиковый Плащ", 5364.48m, "Новинка" },
+                    { 9, "Категория 2", "Богатый намеченных широкому.", "https://placehold.co/200", "Большой Натуральный Сабо", 7619.50m, "Новинка" },
+                    { 10, "Категория 1", "Равным другой гражданского дальнейшее равным создание.", "https://placehold.co/200", "Невероятный Натуральный Майка", 4.89m, "Рекомендуемый" }
                 });
 
             migrationBuilder.CreateIndex(
