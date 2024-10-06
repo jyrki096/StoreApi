@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using Api.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace Api.ModelsDto
 {
@@ -9,6 +9,6 @@ namespace Api.ModelsDto
         public int OrderHeaderId { get; set; }
         public string CustomerName { get; set; }
         public string CustomerEmail { get; set; }
-        public string Status { get; set; }
+        public OrderStatus Status { get; set; }
     }
 }
