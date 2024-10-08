@@ -1,12 +1,10 @@
-using Api.Storage;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api
 {
     [ApiController]
     [Route("api/[controller]/[Action]")]
-    public class StoreController(AppDbContext dbContext) : ControllerBase
+    public class StoreController() : ControllerBase
     {
-        protected AppDbContext database = dbContext;
     }
 }

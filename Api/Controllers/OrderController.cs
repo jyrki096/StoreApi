@@ -8,7 +8,7 @@ using System.Net;
 
 namespace Api.Controllers
 {
-    public class OrderController(AppDbContext dbContext, OrderService orderService) : StoreController(dbContext)
+    public class OrderController(AppDbContext database, OrderService orderService) : StoreController
     {
         [HttpPost]
         public async Task<ActionResult<ServerResponse>> CreateOrder([FromBody] OrderHeaderCreateDto order)

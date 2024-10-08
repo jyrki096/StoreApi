@@ -1,19 +1,17 @@
 using System.Net;
 using Api.Models;
-using Api.Service;
 using Api.Storage;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 
 namespace Api.Controllers
 {
-    public class ShoppingCartController(AppDbContext dbContext, ShoppingCartService shoppingCartService) : StoreController(dbContext)
+    public class CartController(ProductStorage productStorage, CartStorage cartStorage) : StoreController
     {
         [HttpGet]
         public async Task<ActionResult<ServerResponse>> AppendOrUpdateItemInCartAsync(string userId, int productId, int quantity)
         {
-            var existingProduct =  await database.Products.FirstOrDefaultAsync(p => p.Id == productId);
+            var existingProduct =  await productStorage.GetProductByIdAsync(productId);
 
             if (existingProduct is null)
                 return NotFound(new ServerResponse
@@ -23,28 +21,29 @@ namespace Api.Controllers
                     ErrorMessages = { "Товар не найден" }
                 });
 
-            var existingCart = await shoppingCartService.GetShoppingCartAsync(userId);
+            var existingCart = await cartStorage.GetShoppingCartAsync(userId);
 
             if (existingCart is null)
-                await shoppingCartService.CreateNewCartAsync(userId, productId, quantity);
+                await cartStorage.CreateNewCartAsync(userId, productId, quantity);
             else
-                await shoppingCartService.UpdateExistingCartAsync(existingCart, productId, quantity);
+                await cartStorage.UpdateExistingCartAsync(existingCart, productId, quantity);
             
-            return Ok(new ServerResponse{
-                isSuccess = true,
+            return Ok(new ServerResponse
+            {
                 StatusCode = HttpStatusCode.OK
             });
         }
 
         [HttpGet]
-        public async Task<ActionResult<ServerResponse>> GetShoppingCart(string userId)
+        public async Task<ActionResult<ServerResponse>> GetCartAsync(string userId)
         {
             try
             {
-                var cart = await shoppingCartService.GetShoppingCartAsync(userId);
+                var cart = await cartStorage.GetShoppingCartAsync(userId);
                 
-                return Ok(new ServerResponse{
-                    isSuccess = true,
+                return Ok(new ServerResponse
+                {
+                    StatusCode= HttpStatusCode.OK,
                     Result =  cart
                 });
             }

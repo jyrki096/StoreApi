@@ -18,6 +18,6 @@ namespace Api.Models
         [Required]
         public string ItemName { get; set; }
         [Required]
-        public decimal Price { get; set;}
+        public decimal Price { get; set; }
     }
 }

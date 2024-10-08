@@ -6,7 +6,7 @@ using System.Net;
 
 namespace Api.Controllers
 {
-    public class PaymentController(AppDbContext database, IPaymentService paymentService) : StoreController(database)
+    public class PaymentController(AppDbContext database, IPaymentService paymentService) : StoreController
     {
         [HttpPost]
         public async Task<ActionResult<ServerResponse>> MakePayment(string userId, int orderHeaderId, string cardNumber)

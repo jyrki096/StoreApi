@@ -5,59 +5,35 @@ using Api.Service;
 using Api.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace Api.Controllers
 {
-    public class AuthController : StoreController
+    public class AuthController(UserStorage userStorage, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, JwtTokenGenerator tokenGenerator) : StoreController
     {
-        private readonly UserManager<AppUser> userManager;
-        private readonly RoleManager<IdentityRole> roleManager;
-        private readonly JwtTokenGenerator tokenGenerator;
-
-        public AuthController(
-            AppDbContext dbContext, 
-            UserManager<AppUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            JwtTokenGenerator tokenGenerator)  : base(dbContext)
-        {
-            this.userManager = userManager;
-            this.roleManager = roleManager;
-            this.tokenGenerator = tokenGenerator;
-        }
 
         [HttpPost]
-        public async Task<IActionResult> Register(
-            [FromBody] RegisterRequestDto registerRequestDto
-        )
+        public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto registerRequestDto)
         {
             try
             {
                 if (registerRequestDto is null)
-                return BadRequest(new ServerResponse(){
-                    isSuccess = false,
-                    StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessages = { "Некорректная модель запроса" }
-                });
+                    return BadRequest(new ServerResponse
+                    {
+                        isSuccess = false,
+                        StatusCode = HttpStatusCode.BadRequest,
+                        ErrorMessages = { "Некорректная модель запроса" }
+                    });
 
                 if (ModelState.IsValid)
                 {
-                    var userFromDb = await database.AppUsers
-                        .FirstOrDefaultAsync(u => u.UserName.ToLower() == registerRequestDto.UserName.ToLower());
+                    var userFromDb = await userStorage.GetUserAsync(registerRequestDto.Email);
 
                     if (userFromDb is not null)
                         return BadRequest(new ServerResponse(){
                             isSuccess = false,
                             StatusCode = HttpStatusCode.BadRequest,
-                            ErrorMessages = { "Пользователь с таким именем уже существует" }
-                        });
-
-                    if (await database.AppUsers.FirstOrDefaultAsync(u => u.Email.ToLower() == registerRequestDto.Email.ToLower()) is not null)
-                        return BadRequest(new ServerResponse(){
-                            isSuccess = false,
-                            StatusCode = HttpStatusCode.BadRequest,
-                            ErrorMessages = { "Пользователь с таким именем уже существует" }
+                            ErrorMessages = { "Пользователь с таким Email уже существует" }
                         });
 
                     var newAppUser = new AppUser
@@ -70,7 +46,8 @@ namespace Api.Controllers
                     var result = await userManager.CreateAsync(newAppUser, registerRequestDto.Password);
 
                     if (!result.Succeeded)
-                        return BadRequest(new ServerResponse(){
+                        return BadRequest(new ServerResponse
+                            {
                                 isSuccess = false,
                                 StatusCode = HttpStatusCode.BadRequest,
                                 ErrorMessages = { "Ошибка регистрации" }
@@ -89,7 +66,8 @@ namespace Api.Controllers
                         Result = "Регистрация завершена"
                     });   
                 }
-                return BadRequest(new ServerResponse(){
+                return BadRequest(new ServerResponse
+                {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,
                     ErrorMessages = { "Ошибка регистрации" }
@@ -97,7 +75,8 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new ServerResponse(){
+                return BadRequest(new ServerResponse
+                {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,
                     ErrorMessages = { "Что-то поламалось", ex.Message }
@@ -107,9 +86,9 @@ namespace Api.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
+        public async Task<ActionResult> LoginAsync([FromBody] LoginRequestDto loginRequestDto)
         {
-            var userFromDb = await database.AppUsers.FirstOrDefaultAsync(u => u.Email.ToLower() == loginRequestDto.Email.ToLower());
+            var userFromDb = await userStorage.GetUserAsync(loginRequestDto.Email);
             
             if (userFromDb is null || ! await userManager.CheckPasswordAsync(userFromDb, loginRequestDto.Password))
                 return BadRequest(new ServerResponse 
@@ -122,7 +101,8 @@ namespace Api.Controllers
             var roles = await userManager.GetRolesAsync(userFromDb);
             var token = tokenGenerator.GenerateJwtToken(userFromDb, roles);
 
-            return Ok(new LoginResponseDto {
+            return Ok(new LoginResponseDto 
+            {
                 Email = userFromDb.Email,
                 Token = token,
             });

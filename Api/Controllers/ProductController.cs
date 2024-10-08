@@ -3,25 +3,24 @@ using Api.ModelsDto;
 using Api.Models;
 using Api.Storage;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Api.Helper;
 
 namespace Api.Controllers
 {
-    public class ProductController(AppDbContext appDb) : StoreController(appDb)
+    public class ProductController(ProductStorage productStorage) : StoreController
     {
         [HttpGet]
-        public async Task<IActionResult> GetProducts()
+        public async Task<IActionResult> GetProductsAsync()
         {
             return Ok(new ServerResponse
-            { 
+            {
                 StatusCode = HttpStatusCode.OK,
-                Result = await database.Products.ToListAsync()
+                Result = await productStorage.GetAllAsync()
             });
         } 
 
-        [HttpGet("{id}", Name = nameof(GetProductById))]
-        public async Task<ActionResult<ServerResponse>> GetProductById(int id)
+        [HttpGet("{id}", Name = nameof(GetProductByIdAsync))]
+        public async Task<ActionResult<ServerResponse>> GetProductByIdAsync(int id)
         {
             if (id <= 0 || id.GetType() != typeof(int))
                 return BadRequest(new ServerResponse
@@ -31,7 +30,7 @@ namespace Api.Controllers
                     ErrorMessages = { "Некорректный id" }
                 });
 
-            var product = await database.Products.FirstOrDefaultAsync(x => x.Id == id);
+            var product = await productStorage.GetProductByIdAsync(id);
 
             if (product is null)
                 return NotFound(new ServerResponse
@@ -49,7 +48,7 @@ namespace Api.Controllers
         } 
 
         [HttpPost]
-        public async Task<ActionResult<ServerResponse>> CreateProduct([FromBody] CreatedProductDto createdProduct)
+        public async Task<ActionResult<ServerResponse>> CreateProductAsync([FromBody] CreatedProductDto createdProduct)
         {
             try
             {
@@ -65,11 +64,10 @@ namespace Api.Controllers
                         Image = createdProduct.Image
                     };
 
-                    await database.Products.AddAsync(product);
-                    await database.SaveChangesAsync();
+                    await productStorage.AddProductAsync(product);
 
                     return CreatedAtRoute(
-                        nameof(GetProductById), 
+                        nameof(GetProductByIdAsync), 
                         new { id = product.Id },
                         new ServerResponse
                         {
@@ -96,8 +94,8 @@ namespace Api.Controllers
             }
         } 
 
-        [HttpPut("{id}", Name = nameof(UpdateProduct))]
-        public async Task<ActionResult<ServerResponse>> UpdateProduct(int id, [FromBody] UpdatedProductDto updatedProductDto)
+        [HttpPut("{id}", Name = nameof(UpdateProductAsync))]
+        public async Task<ActionResult<ServerResponse>> UpdateProductAsync(int id, [FromBody] UpdatedProductDto updatedProductDto)
         {
             try
             {
@@ -111,7 +109,7 @@ namespace Api.Controllers
                             ErrorMessages = { "Неверная модель" }
                         });
 
-                    var product = await database.Products.FirstOrDefaultAsync(x => x.Id == id);
+                    var product = await productStorage.GetProductByIdAsync(id);
 
                     if (product is null)
                         return NotFound(new ServerResponse
@@ -122,9 +120,7 @@ namespace Api.Controllers
                         });
 
                     Mapper.UpdateToProductDb(updatedProductDto, product);
-
-                    database.Products.Update(product);
-                    await database.SaveChangesAsync();
+                    await productStorage.UpdateProductAsync(product);
 
                     return Ok(new ServerResponse
                     {
@@ -151,8 +147,8 @@ namespace Api.Controllers
             }
         } 
 
-        [HttpDelete("{id}", Name = nameof(DeleteProductById))]
-        public async Task<ActionResult<ServerResponse>> DeleteProductById(int id)
+        [HttpDelete("{id}", Name = nameof(DeleteProductByIdAsync))]
+        public async Task<ActionResult<ServerResponse>> DeleteProductByIdAsync(int id)
         {
             try
             {
@@ -164,18 +160,15 @@ namespace Api.Controllers
                         ErrorMessages = { "Некорректный id" }
                     });
 
-                var product = await database.Products.FirstOrDefaultAsync(x => x.Id == id);
+                var isRemoved = await productStorage.RemoveByIdAsync(id);
 
-                if (product is null)
+                if (!isRemoved)
                     return NotFound(new ServerResponse
                     {
                         isSuccess = false,
                         StatusCode = HttpStatusCode.NotFound,
                         ErrorMessages = { "Товар с указанным id не найден" }
                     });
-             
-                database.Remove(product);
-                await database.SaveChangesAsync();
 
                 return Ok(new ServerResponse()
                 {

@@ -12,7 +12,7 @@ namespace Api.Service
 
         public JwtTokenGenerator(IConfiguration configuration)
         {
-            this.secretKey = configuration["AuthSettings:SecretKey"];
+            secretKey = configuration["AuthSettings:SecretKey"];
         }
 
         public string GenerateJwtToken(AppUser appUser, IList<string> roles)

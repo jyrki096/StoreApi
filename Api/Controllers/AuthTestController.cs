@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
-    public class AuthTestController(AppDbContext dbContext) : StoreController(dbContext)
+    public class AuthTestController(AppDbContext database) : StoreController
     {
         [HttpGet]
         public IActionResult Test1() => Ok(new ServerResponse
