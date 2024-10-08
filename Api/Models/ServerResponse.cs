@@ -2,9 +2,9 @@ using System.Net;
 
 namespace Api.Models
 {
-    public class ResponseServer
+    public class ServerResponse
     {
-        public ResponseServer()
+        public ServerResponse()
         {
             isSuccess = true;
             ErrorMessages = new();

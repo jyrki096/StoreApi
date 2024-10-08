@@ -11,10 +11,10 @@ namespace Api.Controllers
     public class OrderController(AppDbContext dbContext, OrderService orderService) : StoreController(dbContext)
     {
         [HttpPost]
-        public async Task<ActionResult<ResponseServer>> CreateOrder([FromBody] OrderHeaderCreateDto order)
+        public async Task<ActionResult<ServerResponse>> CreateOrder([FromBody] OrderHeaderCreateDto order)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new ResponseServer
+                return BadRequest(new ServerResponse
                 {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,
@@ -27,14 +27,14 @@ namespace Api.Controllers
                 await orderService.CreateOrderAsync(order);
                 order.OrderDetails = null;
 
-                return Ok(new ResponseServer
+                return Ok(new ServerResponse
                 {
                     Result = order
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new ResponseServer
+                return BadRequest(new ServerResponse
                 {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,
@@ -44,12 +44,12 @@ namespace Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ResponseServer>> GetOrderById(int id)
+        public async Task<ActionResult<ServerResponse>> GetOrderById(int id)
         { 
             try
             {
                 if (id <= 0)
-                    return BadRequest(new ResponseServer
+                    return BadRequest(new ServerResponse
                     {
                         isSuccess = false,
                         StatusCode = HttpStatusCode.BadRequest,
@@ -59,7 +59,7 @@ namespace Api.Controllers
                 var order = await orderService.GetOrderByIdAsync(id);
 
                 if (order is null)
-                    return NotFound(new ResponseServer
+                    return NotFound(new ServerResponse
                     {
                         isSuccess = false,
                         StatusCode = HttpStatusCode.NotFound,
@@ -67,7 +67,7 @@ namespace Api.Controllers
                     });
 
 
-                return Ok(new ResponseServer
+                return Ok(new ServerResponse
                 {
                     StatusCode = HttpStatusCode.OK,
                     Result = order
@@ -75,7 +75,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new ResponseServer
+                return BadRequest(new ServerResponse
                 {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,
@@ -85,14 +85,14 @@ namespace Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ResponseServer>> GetOrderByUserId(string id)
+        public async Task<ActionResult<ServerResponse>> GetOrderByUserId(string id)
         {
             try
             {
                 var isUserExist = await database.Users.FirstOrDefaultAsync(u => u.Id == id);
 
                 if (string.IsNullOrEmpty(id) || isUserExist is null)
-                    return BadRequest(new ResponseServer
+                    return BadRequest(new ServerResponse
                     {
                         isSuccess = false,
                         StatusCode = HttpStatusCode.BadRequest,
@@ -101,7 +101,7 @@ namespace Api.Controllers
 
                 var orders = await orderService.GetOrderByUserIdAsync(id);
 
-                return Ok(new ResponseServer
+                return Ok(new ServerResponse
                 {
                     StatusCode = HttpStatusCode.OK,
                     Result = orders
@@ -109,7 +109,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new ResponseServer
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ServerResponse
                 {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.InternalServerError,
@@ -119,7 +119,7 @@ namespace Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ResponseServer>> UpdateOrderHeader(int id, [FromBody] OrderHeaderUpdateDto orderHeaderUpdateDto)
+        public async Task<ActionResult<ServerResponse>> UpdateOrderHeader(int id, [FromBody] OrderHeaderUpdateDto orderHeaderUpdateDto)
         {
             try
             {
@@ -127,7 +127,7 @@ namespace Api.Controllers
 
                 if (!result)
                     return BadRequest(
-                        new ResponseServer 
+                        new ServerResponse 
                         { 
                             isSuccess = false, 
                             StatusCode = HttpStatusCode.BadRequest, 
@@ -135,7 +135,7 @@ namespace Api.Controllers
                         });
 
                 return Ok(
-                    new ResponseServer 
+                    new ServerResponse 
                     { 
                         StatusCode = HttpStatusCode.OK, 
                         Result = "Всё обновлено" 
@@ -143,7 +143,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode((int)HttpStatusCode.InternalServerError, new ResponseServer
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ServerResponse
                 {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.InternalServerError,

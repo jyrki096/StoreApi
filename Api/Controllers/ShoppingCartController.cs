@@ -11,12 +11,12 @@ namespace Api.Controllers
     public class ShoppingCartController(AppDbContext dbContext, ShoppingCartService shoppingCartService) : StoreController(dbContext)
     {
         [HttpGet]
-        public async Task<ActionResult<ResponseServer>> AppendOrUpdateItemInCartAsync(string userId, int productId, int quantity)
+        public async Task<ActionResult<ServerResponse>> AppendOrUpdateItemInCartAsync(string userId, int productId, int quantity)
         {
             var existingProduct =  await database.Products.FirstOrDefaultAsync(p => p.Id == productId);
 
             if (existingProduct is null)
-                return NotFound(new ResponseServer
+                return NotFound(new ServerResponse
                 {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.NotFound,
@@ -30,27 +30,27 @@ namespace Api.Controllers
             else
                 await shoppingCartService.UpdateExistingCartAsync(existingCart, productId, quantity);
             
-            return Ok(new ResponseServer{
+            return Ok(new ServerResponse{
                 isSuccess = true,
                 StatusCode = HttpStatusCode.OK
             });
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseServer>> GetShoppingCart(string userId)
+        public async Task<ActionResult<ServerResponse>> GetShoppingCart(string userId)
         {
             try
             {
                 var cart = await shoppingCartService.GetShoppingCartAsync(userId);
                 
-                return Ok(new ResponseServer{
+                return Ok(new ServerResponse{
                     isSuccess = true,
                     Result =  cart
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new ResponseServer
+                return BadRequest(new ServerResponse
                 {
                     isSuccess = false,
                     StatusCode = HttpStatusCode.BadRequest,
