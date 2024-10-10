@@ -1,12 +1,11 @@
 ﻿using Api.Models;
 using Api.Storage;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace Api.Service.Payment
 {
-    public class FakePaymentService(AppDbContext database) : IPaymentService
+    public class FakePaymentService(OrderStorage orderStorage) : IPaymentService
     {
         public async Task<ActionResult<ServerResponse>> HandlePaymentAsync(string userId, int orderHeaderId, string cardNumber)
         {
@@ -18,21 +17,8 @@ namespace Api.Service.Payment
                     ErrorMessages = { "Некорректный id" }
                 });
 
-            var cart = await database.ShoppingCarts
-                                     .Include(x => x.CartItems)
-                                     .ThenInclude(x => x.Product)
-                                     .FirstOrDefaultAsync(u => u.UserId == userId);
+            var order = await orderStorage.GetOrderByIdAsync(orderHeaderId);
 
-            var order = await database.OrderHeaders.FirstOrDefaultAsync(o => o.OrderHeaderId == orderHeaderId);
-
-            
-            if (cart is null || cart.CartItems is null || cart.TotalAmount == 0)
-                return new BadRequestObjectResult(new ServerResponse
-                {
-                    isSuccess = false,
-                    StatusCode = HttpStatusCode.BadRequest,
-                    ErrorMessages = { "Корзина пуста или не найдена" }
-                });
 
             if (order is null)
                 return new BadRequestObjectResult(new ServerResponse
@@ -43,7 +29,7 @@ namespace Api.Service.Payment
                     });
                 
 
-            var totalPrice = cart.TotalPrice;
+            var totalPrice = order.TotalPrice;
 
             await Task.Delay(5000);
 
@@ -53,7 +39,6 @@ namespace Api.Service.Payment
             {
                 paymentResponse = new PaymentResponse
                 {
-                    Success =  true,
                     IntentId = Guid.NewGuid().ToString(),
                     Secret = Guid.NewGuid().ToString(),
                 };
@@ -78,7 +63,7 @@ namespace Api.Service.Payment
                 });
 
             order.Status = OrderStatus.Processed;
-            await database.SaveChangesAsync();
+            await orderStorage.SavaChangesInDbAsync();
 
             return new OkObjectResult(new ServerResponse
             {

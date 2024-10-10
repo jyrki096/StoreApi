@@ -14,5 +14,12 @@ namespace Api.Helper
             product.Price = updatedProductDto.Price == decimal.Zero? product.Price : updatedProductDto.Price;
             product.Image = string.IsNullOrEmpty(updatedProductDto.Image) ? product.Image : updatedProductDto.Image;
         }
+
+        public static void UpdateToOrderDb(OrderHeaderUpdateDto orderHeaderUpdateDto, OrderHeader orderHeader)
+        {
+            orderHeader.CustomerEmail = string.IsNullOrEmpty(orderHeaderUpdateDto.CustomerEmail) ? orderHeader.CustomerEmail : orderHeaderUpdateDto.CustomerEmail;
+            orderHeader.CustomerName = string.IsNullOrEmpty(orderHeaderUpdateDto.CustomerName) ? orderHeader.CustomerName : orderHeaderUpdateDto.CustomerName;
+            orderHeader.Status = string.IsNullOrEmpty(orderHeaderUpdateDto.Status.ToString()) ? orderHeader.Status : orderHeaderUpdateDto.Status;
+        }
     }
 }

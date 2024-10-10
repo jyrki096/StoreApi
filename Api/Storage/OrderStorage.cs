@@ -1,11 +1,11 @@
+using Api.Helper;
 using Api.Models;
 using Api.ModelsDto;
-using Api.Storage;
 using Microsoft.EntityFrameworkCore;
 
-namespace Api.Service
+namespace Api.Storage
 {
-    public class OrderService(AppDbContext dbContext)
+    public class OrderStorage(AppDbContext dbContext, ProductStorage productStorage)
     {
         public async Task<OrderHeader> CreateOrderAsync(OrderHeaderCreateDto orderHeaderCreateDto)
         {
@@ -14,31 +14,35 @@ namespace Api.Service
                 AppUserId = orderHeaderCreateDto.UserId,
                 CustomerName = orderHeaderCreateDto.CustomerName,
                 CustomerEmail = orderHeaderCreateDto.CustomerEmail,
-                OrderDateTime  = DateTime.UtcNow,
-                TotalPrice = orderHeaderCreateDto.TotalPrice,
-                TotalCount = orderHeaderCreateDto.TotalCount,
-                Status = string.IsNullOrEmpty(orderHeaderCreateDto.Status.ToString()) ? 
-                                                          OrderStatus.Created : 
+                OrderDateTime = DateTime.UtcNow.AddHours(3),
+                TotalCount = orderHeaderCreateDto.OrderDetails.Sum(x => x.Quantity),
+                Status = string.IsNullOrEmpty(orderHeaderCreateDto.Status.ToString()) || orderHeaderCreateDto.Status == OrderStatus.Created ?
+                                                          OrderStatus.Created :
                                                           orderHeaderCreateDto.Status
             };
 
             await dbContext.OrderHeaders.AddAsync(order);
             await dbContext.SaveChangesAsync();
-            
+
+            var orderSum = (decimal)0;
+
             foreach (var details in orderHeaderCreateDto.OrderDetails)
             {
+                var product = await productStorage.GetProductByIdAsync(details.ProductId);
+
                 var orderDetails = new OrderDetails
                 {
                     OrderHeaderId = order.OrderHeaderId,
                     ProductId = details.ProductId,
                     Quantity = details.Quantity,
-                    ItemName = details.ItemName,
-                    Price = details.Price
+                    ItemName = product.Name,
+                    Price = product.Price
                 };
 
+                orderSum += product.Price;
                 await dbContext.OrderDetails.AddAsync(orderDetails);
             }
-
+            order.TotalPrice = orderSum;
             await dbContext.SaveChangesAsync();
 
             return order;
@@ -49,7 +53,7 @@ namespace Api.Service
             return await dbContext.OrderHeaders
                                   .Include(items => items.OrderDetailsItems)
                                   .ThenInclude(p => p.Product)
-                                  .FirstOrDefaultAsync(o => o.OrderHeaderId  == id);
+                                  .FirstOrDefaultAsync(o => o.OrderHeaderId == id);
         }
 
         public async Task<List<OrderHeader>> GetOrderByUserIdAsync(string userId)
@@ -72,12 +76,12 @@ namespace Api.Service
             if (orderHeader is null)
                 return false;
 
-            orderHeader.CustomerEmail = string.IsNullOrEmpty(orderHeaderUpdateDto.CustomerEmail) ? orderHeader.CustomerEmail : orderHeaderUpdateDto.CustomerEmail;
-            orderHeader.CustomerName = string.IsNullOrEmpty(orderHeaderUpdateDto.CustomerName) ? orderHeader.CustomerName : orderHeaderUpdateDto.CustomerName;
-            orderHeader.Status = string.IsNullOrEmpty(orderHeaderUpdateDto.Status.ToString()) ? orderHeader.Status : orderHeaderUpdateDto.Status;
+            Mapper.UpdateToOrderDb(orderHeaderUpdateDto, orderHeader);
 
             await dbContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task SavaChangesInDbAsync() => await dbContext.SaveChangesAsync();
     }
 }

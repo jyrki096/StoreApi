@@ -15,12 +15,12 @@ builder.Services.AddPostgreSqlIdentityContext();
 builder.Services.AddScoped<ProductStorage>();
 builder.Services.AddScoped<UserStorage>();
 builder.Services.AddScoped<CartStorage>();
+builder.Services.AddScoped<OrderStorage>();
 builder.Services.AddConfigureIdentityOptions();
 builder.Services.AddJwtTokenGenerator();
 builder.Services.AddAuthenticationConfig(builder.Configuration);
 builder.Services.AddSwaggerGenCustomConfig();
 builder.Services.AddCors();
-builder.Services.AddOrdersService();
 builder.Services.AddPaymentService();
 
 

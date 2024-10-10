@@ -30,7 +30,8 @@ namespace Api.Controllers
                     var userFromDb = await userStorage.GetUserAsync(registerRequestDto.Email);
 
                     if (userFromDb is not null)
-                        return BadRequest(new ServerResponse(){
+                        return BadRequest(new ServerResponse
+                        {
                             isSuccess = false,
                             StatusCode = HttpStatusCode.BadRequest,
                             ErrorMessages = { "Пользователь с таким Email уже существует" }
